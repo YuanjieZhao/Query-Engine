@@ -24,11 +24,11 @@ Windows:
 
 ## Overview of project files and API
 
-Source code for populating data and handling query is in the file [query](Query-Engine/Source/src/controller/InsightFacade.ts)
+Source code for populating data and handling query is in the file [InsightFacade.ts](Query-Engine/Source/src/controller/InsightFacade.ts)
 
-Source code for RESTful web services is in the file [web](Query-Engine/Source/src/rest/Server.ts)
+Source code for RESTful web services is in the file [Server.ts](Query-Engine/Source/src/rest/Server.ts)
 
-All test files are in the folder [test](Query-Engine/Source/test/)
+All test files are in the folder [/test](Query-Engine/Source/test/)
 
 The major APIs are the following: 
 
