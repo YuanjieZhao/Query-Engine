@@ -22,6 +22,14 @@ Windows:
 
 1. ```yarn run build```
 
+## Major API
+
+`addDataset(id: string, content: string): Promise<InsightResponse>`: adds a dataset to the internal model, providing the id of the dataset, and the string of the content of the dataset.
+
+`removeDataset(id: string): Promise<InsightResponse>`:  removes a dataset from the internal model, given the id.
+	
+`performQuery(query: any): Promise<InsightResponse>`: performs a query on the dataset.  It first should parse and validate the input query, then perform semantic checks on the query, and finally evaluate the query if it is valid. 
+
 ## Query Syntax
 
 ```ENBF
@@ -127,7 +135,7 @@ Description: Find all rooms with more than 300 seats, and has "Tables" in the fu
 
  **Query B:**
 
- Description: Find all courses with average of 97
+ Description: Find all courses with average of 97 or above
 
 ```json
 {
