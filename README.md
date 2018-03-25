@@ -25,34 +25,41 @@ Windows:
 ## Query Syntax
 
 ```ENBF
+QUERY ::='{'BODY ', ' OPTIONS  (', ' TRANSFORMATIONS)? '}'
 
-QUERY           ::='{'BODY ', ' OPTIONS '}'
+BODY ::= 'WHERE: {' (FILTER)? '}'
+OPTIONS ::= 'OPTIONS: {' COLUMNS (', ' SORT)? '}'
+TRANSFORMATIONS ::= 'TRANSFORMATIONS: {' GROUP ', ' APPLY '}'
 
-BODY            ::= 'WHERE:{' FILTER '}'
+FILTER ::= (LOGICCOMPARISON | MCOMPARISON | SCOMPARISON | NEGATION)
 
-OPTIONS         ::= 'OPTIONS:{' COLUMNS (', ORDER:' key)? '}'
+LOGICCOMPARISON ::= LOGIC ': [{' FILTER ('}, {' FILTER )* '}]'  
+MCOMPARISON ::= MCOMPARATOR ': {' m_key ':' number '}'  
+SCOMPARISON ::= 'IS: {' s_key ': ' [*]? inputstring [*]? '}'  
+NEGATION ::= 'NOT: {' FILTER '}'
 
-FILTER          ::= (LOGICCOMPARISON | MCOMPARISON | SCOMPARISON | NEGATION)
+LOGIC ::= 'AND' | 'OR' 
+MCOMPARATOR ::= 'LT' | 'GT' | 'EQ' 
 
-LOGICCOMPARISON ::= LOGIC ':[{' FILTER ('}, {' FILTER )* '}]'  
+COLUMNS ::= 'COLUMNS:[' (string ',')* string ']'
+SORT ::= 'ORDER: ' ('{ dir:' DIRECTION ', keys: [ ' string (',' string)* ']}' | string) 
+DIRECTION ::= 'UP' | 'DOWN'  
 
-MCOMPARISON     ::= MCOMPARATOR ':{' m_key ':' number '}'  
+GROUP ::= 'GROUP: [' (key ',')* key ']'                                                          
+APPLY ::= 'APPLY: [' (APPLYKEY (', ' APPLYKEY )* )? ']'  
+APPLYKEY ::= '{' string ': {' APPLYTOKEN ':' key '}}'
+APPLYTOKEN ::= 'MAX' | 'MIN' | 'AVG' | 'COUNT' | 'SUM'
 
-SCOMPARISON     ::= 'IS:{' s_key ':' [*]? inputstring [*]? '}'  // inputstring may have option * characters as wildcards
+key             ::= (s_key | m_key)
+                    //semantics for each key detailed below
 
-NEGATION        ::= 'NOT :{' FILTER '}'
-
-LOGIC           ::= 'AND' | 'OR' 
-
-MCOMPARATOR     ::= 'LT' | 'GT' | 'EQ' 
-
-COLUMNS         ::= 'COLUMNS:[' (key ',')* key ']'
-
-key             ::= (s_key | m_key) //semantics for each key detailed below
-
-s_key           ::= 'courses_'('dept' | 'id' | 'instructor' |
-                    'title' | 'uuid')              
-m_key           ::= 'courses_'('avg' | 'pass' | 'fail' | 'audit')
+s_key           ::= ('courses_'('dept' | 'id' | 'instructor' |
+                                'title' | 'uuid')) | 
+                    ('rooms_'('fullname' | 'shortname' | 'number' | 
+                              'name' | 'address' | 'type' | 
+                              'furniture' | 'href'))           
+m_key           ::= ('courses_'('avg' | 'pass' | 'fail' | 'audit' | 'year')) |
+                    ('rooms_'('lat' | 'lon' | 'seats))      
 
 inputstring     ::= [^*]+ //one or more of any character except asterisk.
 
@@ -60,10 +67,69 @@ inputstring     ::= [^*]+ //one or more of any character except asterisk.
 
 ## Query Examples
 
-Query Input:
+**Query A:**
+
+Description: Find all rooms with more than 300 seats, and has "Tables" in the furniture description. Then, group all the rooms by the building they are in (rooms_shortname). For each of these groups, show the number of seats in the room with the most seats from that group. Show the groups' shortnames and the largest number of seats in the group, sorted by the largest number of seats in the group, largest to smallest.
 
 ```json
 
+{
+    "WHERE": {
+        "AND": [{
+            "IS": {
+                "rooms_furniture": "*Tables*"
+            }
+        }, {
+            "GT": {
+                "rooms_seats": 300
+            }
+        }]
+    },
+    "OPTIONS": {
+        "COLUMNS": [
+            "rooms_shortname",
+            "maxSeats"
+        ],
+        "ORDER": {
+            "dir": "DOWN",
+            "keys": ["maxSeats"]
+        }
+    },
+    "TRANSFORMATIONS": {
+        "GROUP": ["rooms_shortname"],
+        "APPLY": [{
+            "maxSeats": {
+                "MAX": "rooms_seats"
+            }
+        }]
+    }
+}
+
+```
+
+**Response A:**
+
+```
+{
+    "result": [{
+        "rooms_shortname": "OSBO",
+        "maxSeats": 442
+    }, {
+        "rooms_shortname": "HEBB",
+        "maxSeats": 375
+    }, {
+        "rooms_shortname": "LSC",
+        "maxSeats": 350
+    }]
+}
+
+ ```
+
+ **Query B:**
+
+ Description: Find all courses with average of 97
+
+```json
 {
   "WHERE":{
      "GT":{
@@ -78,12 +144,11 @@ Query Input:
      "ORDER":"courses_avg"
   }
 }
-
 ```
 
-Query Output:
+**Response B:**
 
-```json
+```
 { 
  result:
   [ { courses_dept: 'epse', courses_avg: 97.09 },
@@ -135,5 +200,8 @@ Query Output:
     { courses_dept: 'cnps', courses_avg: 99.19 },
     { courses_dept: 'math', courses_avg: 99.78 },
     { courses_dept: 'math', courses_avg: 99.78 } ] }
+```
 
- ```
+## Sidenotes
+
+All zip files are used for testing purposes.
