@@ -22,13 +22,21 @@ Windows:
 
 1. ```yarn run build```
 
-## Major API
+## Overview of project files and API
 
-`addDataset(id: string, content: string): Promise<InsightResponse>`: adds a dataset to the internal model, providing the id of the dataset, and the string of the content of the dataset.
+Source code for populating data and handling query is in the file [query](Query-Engine/Source/src/controller/InsightFacade.ts)
 
-`removeDataset(id: string): Promise<InsightResponse>`:  removes a dataset from the internal model, given the id.
-	
-`performQuery(query: any): Promise<InsightResponse>`: performs a query on the dataset.  It first should parse and validate the input query, then perform semantic checks on the query, and finally evaluate the query if it is valid. 
+Source code for RESTful web services is in the file [web](Query-Engine/Source/src/rest/Server.ts)
+
+All test files are in the folder [test](Query-Engine/Source/test/)
+
+The major APIs are the following: 
+
+* `addDataset(id: string, content: string)`: adds a dataset to the internal model, providing the id of the dataset, and the string of the content of the dataset.
+
+* `removeDataset(id: string)`:  removes a dataset from the internal model, given the id.
+
+* `performQuery(query: any)`: performs a query on the dataset.  It first should parse and validate the input query, then perform semantic checks on the query, and finally evaluate the query if it is valid. 
 
 ## Query Syntax
 
